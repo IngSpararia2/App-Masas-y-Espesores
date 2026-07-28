@@ -1,0 +1,20 @@
+MasaLab Histórico 0.1.4
+========================
+
+Aplicación Flutter offline para Android y Windows.
+
+Contenido principal:
+- Código fuente Dart/Flutter completo en lib/
+- Importador incremental de Resumen_Compresion.xlsx y Resumen_Flexotraccion.xlsx
+- SQLite local, deduplicación SHA-256 y actualizaciones por espécimen
+- Estimación robusta P15/P50/P85 condicionada por absorción
+- Escalado por espesor para flexotracción
+- Interfaz móvil/desktop adaptable
+- Pruebas en test/
+- Documentación técnica en docs/
+- Scripts y accesos BAT para preparar, ejecutar y generar APK
+
+Las carpetas nativas Android/Windows se generan con PREPARAR_PROYECTO.bat.
+Los archivos históricos XLSX no se incluyen dentro del proyecto: se seleccionan desde la aplicación.
+
+Version 0.1.4+5: crédito permanente del desarrollador en la interfaz principal.

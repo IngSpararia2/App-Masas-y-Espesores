@@ -1,0 +1,6 @@
+Copyright (c) 2026 Samuel Parariá.
+Todos los derechos reservados.
+
+Este proyecto se entrega para uso, modificación y despliegue por su propietario.
+No se concede autorización para redistribución comercial o publicación por terceros
+sin permiso expreso del titular.
