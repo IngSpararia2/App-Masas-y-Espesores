@@ -33,10 +33,9 @@ class ModelNormalizer {
       (match) => '${match.group(1)}-${match.group(2)}',
     );
 
-    return value.replaceAll(RegExp(r'-+'), '-').replaceAll(
-          RegExp(r'^-|-$'),
-          '',
-        );
+    return value
+        .replaceAll(RegExp(r'-+'), '-')
+        .replaceAll(RegExp(r'^-|-$'), '');
   }
 
   static String chooseFlexureModel({

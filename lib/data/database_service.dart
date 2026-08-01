@@ -12,13 +12,15 @@ class DatabaseService {
 
   String get databasePath {
     final value = _databasePath;
-    if (value == null) throw StateError('La base de datos no está inicializada.');
+    if (value == null)
+      throw StateError('La base de datos no está inicializada.');
     return value;
   }
 
   Database get _db {
     final value = _database;
-    if (value == null) throw StateError('La base de datos no está inicializada.');
+    if (value == null)
+      throw StateError('La base de datos no está inicializada.');
     return value;
   }
 
@@ -126,10 +128,12 @@ class DatabaseService {
       }
     }
 
-    final batchCount = (_db.select(
-      'SELECT COUNT(*) AS count FROM import_batches;',
-    ).first['count'] as num)
-        .toInt();
+    final batchCount =
+        (_db
+                    .select('SELECT COUNT(*) AS count FROM import_batches;')
+                    .first['count']
+                as num)
+            .toInt();
 
     return AppStats(
       totalMeasurements: (totalRow['total'] as num).toInt(),
@@ -141,7 +145,8 @@ class DatabaseService {
   }
 
   Future<List<ModelSummary>> getModelSummaries(MeasurementType type) async {
-    final rows = _db.select('''
+    final rows = _db.select(
+      '''
       SELECT
         model_code,
         COUNT(*) AS total_samples,
@@ -155,27 +160,32 @@ class DatabaseService {
       GROUP BY model_code
       HAVING COALESCE(SUM(valid_for_prediction), 0) > 0
       ORDER BY model_code COLLATE NOCASE;
-    ''', [type.databaseValue]);
+    ''',
+      [type.databaseValue],
+    );
 
-    return rows.map((row) {
-      return ModelSummary(
-        type: type,
-        modelCode: row['model_code'] as String,
-        totalSamples: (row['total_samples'] as num).toInt(),
-        validSamples: (row['valid_samples'] as num).toInt(),
-        minAbsorption: (row['min_abs'] as num).toDouble(),
-        maxAbsorption: (row['max_abs'] as num).toDouble(),
-        minThicknessMm: (row['min_thickness'] as num?)?.toDouble(),
-        maxThicknessMm: (row['max_thickness'] as num?)?.toDouble(),
-      );
-    }).toList(growable: false);
+    return rows
+        .map((row) {
+          return ModelSummary(
+            type: type,
+            modelCode: row['model_code'] as String,
+            totalSamples: (row['total_samples'] as num).toInt(),
+            validSamples: (row['valid_samples'] as num).toInt(),
+            minAbsorption: (row['min_abs'] as num).toDouble(),
+            maxAbsorption: (row['max_abs'] as num).toDouble(),
+            minThicknessMm: (row['min_thickness'] as num?)?.toDouble(),
+            maxThicknessMm: (row['max_thickness'] as num?)?.toDouble(),
+          );
+        })
+        .toList(growable: false);
   }
 
   Future<List<HistoricalSample>> getSamples(
     MeasurementType type,
     String modelCode,
   ) async {
-    final rows = _db.select('''
+    final rows = _db.select(
+      '''
       SELECT
         dry_mass,
         saturated_mass,
@@ -188,44 +198,55 @@ class DatabaseService {
       WHERE source_type = ?
         AND model_code = ?
         AND valid_for_prediction = 1;
-    ''', [type.databaseValue, modelCode]);
+    ''',
+      [type.databaseValue, modelCode],
+    );
 
-    return rows.map((row) {
-      return HistoricalSample(
-        type: type,
-        modelCode: modelCode,
-        dryMass: (row['dry_mass'] as num).toDouble(),
-        saturatedMass: (row['saturated_mass'] as num).toDouble(),
-        immersedMass: (row['immersed_mass'] as num).toDouble(),
-        naturalMass: (row['natural_mass'] as num?)?.toDouble(),
-        absorption: (row['absorption'] as num).toDouble(),
-        density: (row['density'] as num).toDouble(),
-        thicknessMm: (row['thickness_mm'] as num?)?.toDouble(),
-      );
-    }).toList(growable: false);
+    return rows
+        .map((row) {
+          return HistoricalSample(
+            type: type,
+            modelCode: modelCode,
+            dryMass: (row['dry_mass'] as num).toDouble(),
+            saturatedMass: (row['saturated_mass'] as num).toDouble(),
+            immersedMass: (row['immersed_mass'] as num).toDouble(),
+            naturalMass: (row['natural_mass'] as num?)?.toDouble(),
+            absorption: (row['absorption'] as num).toDouble(),
+            density: (row['density'] as num).toDouble(),
+            thicknessMm: (row['thickness_mm'] as num?)?.toDouble(),
+          );
+        })
+        .toList(growable: false);
   }
 
   Future<List<ImportBatch>> getRecentImports({int limit = 12}) async {
-    final rows = _db.select('''
+    final rows = _db.select(
+      '''
       SELECT id, file_name, source_type, imported_at,
              inserted, updated, unchanged, rejected
       FROM import_batches
       ORDER BY id DESC
       LIMIT ?;
-    ''', [limit]);
+    ''',
+      [limit],
+    );
 
-    return rows.map((row) {
-      return ImportBatch(
-        id: (row['id'] as num).toInt(),
-        fileName: row['file_name'] as String,
-        type: MeasurementTypeLabel.fromDatabase(row['source_type'] as String),
-        importedAt: DateTime.parse(row['imported_at'] as String).toLocal(),
-        inserted: (row['inserted'] as num).toInt(),
-        updated: (row['updated'] as num).toInt(),
-        unchanged: (row['unchanged'] as num).toInt(),
-        rejected: (row['rejected'] as num).toInt(),
-      );
-    }).toList(growable: false);
+    return rows
+        .map((row) {
+          return ImportBatch(
+            id: (row['id'] as num).toInt(),
+            fileName: row['file_name'] as String,
+            type: MeasurementTypeLabel.fromDatabase(
+              row['source_type'] as String,
+            ),
+            importedAt: DateTime.parse(row['imported_at'] as String).toLocal(),
+            inserted: (row['inserted'] as num).toInt(),
+            updated: (row['updated'] as num).toInt(),
+            unchanged: (row['unchanged'] as num).toInt(),
+            rejected: (row['rejected'] as num).toInt(),
+          );
+        })
+        .toList(growable: false);
   }
 
   Future<void> clearAllData() async {
@@ -233,8 +254,10 @@ class DatabaseService {
     try {
       _db.execute('DELETE FROM measurements;');
       _db.execute('DELETE FROM import_batches;');
-      _db.execute('DELETE FROM sqlite_sequence WHERE name IN '
-          "('measurements', 'import_batches');");
+      _db.execute(
+        'DELETE FROM sqlite_sequence WHERE name IN '
+        "('measurements', 'import_batches');",
+      );
       _db.execute('COMMIT;');
     } catch (_) {
       _db.execute('ROLLBACK;');
@@ -248,7 +271,8 @@ class DatabaseService {
       throw StateError('No existe la base de datos para respaldar.');
     }
     final downloads = await getDownloadsDirectory();
-    final destinationDirectory = downloads ?? await getApplicationDocumentsDirectory();
+    final destinationDirectory =
+        downloads ?? await getApplicationDocumentsDirectory();
     final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
     final destination = File(
       p.join(destinationDirectory.path, 'masalab_backup_$timestamp.sqlite'),
