@@ -22,15 +22,15 @@ class ImportScreen extends StatelessWidget {
                 Text(
                   'Importar históricos',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'Puede seleccionar el resumen de compresión, el de flexotracción o ambos al mismo tiempo.',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 18),
                 Card(
@@ -72,7 +72,9 @@ class ImportScreen extends StatelessWidget {
                           icon: controller.importing
                               ? const SizedBox.square(
                                   dimension: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : const Icon(Icons.file_open_outlined),
                           label: Text(
@@ -95,8 +97,8 @@ class ImportScreen extends StatelessWidget {
                   Text(
                     'Resultado de la importación',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   for (final result in controller.lastImportResults) ...[
@@ -121,19 +123,23 @@ class ImportScreen extends StatelessWidget {
                         const SizedBox(height: 10),
                         const _ControlLine(
                           icon: Icons.fingerprint,
-                          text: 'Clave estable por ensayo y espécimen para evitar duplicados.',
+                          text:
+                              'Clave estable por ensayo y espécimen para evitar duplicados.',
                         ),
                         const _ControlLine(
                           icon: Icons.balance_outlined,
-                          text: 'Recalcula absorción y densidad a partir de las masas.',
+                          text:
+                              'Recalcula absorción y densidad a partir de las masas.',
                         ),
                         const _ControlLine(
                           icon: Icons.filter_alt_outlined,
-                          text: 'Marca como no utilizables los registros físicamente incoherentes.',
+                          text:
+                              'Marca como no utilizables los registros físicamente incoherentes.',
                         ),
                         const _ControlLine(
                           icon: Icons.merge_type,
-                          text: 'Unifica variantes como “M12L DIV”, “M12L-DIV” y “M12L-DIP”.',
+                          text:
+                              'Unifica variantes como “M12L DIV”, “M12L-DIV” y “M12L-DIP”.',
                         ),
                       ],
                     ),

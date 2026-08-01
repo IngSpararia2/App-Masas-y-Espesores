@@ -23,10 +23,7 @@ void main() {
 
     expect(result.scenarios.length, 3);
     for (final scenario in result.scenarios) {
-      expect(
-        scenario.saturatedMass,
-        closeTo(scenario.dryMass * 1.06, 1e-9),
-      );
+      expect(scenario.saturatedMass, closeTo(scenario.dryMass * 1.06, 1e-9));
       expect(
         scenario.immersedMass,
         closeTo(
@@ -35,10 +32,10 @@ void main() {
         ),
       );
       expect(scenario.naturalMass, isNotNull);
-      expect(scenario.naturalMass!, inInclusiveRange(
-        scenario.dryMass,
-        scenario.saturatedMass,
-      ));
+      expect(
+        scenario.naturalMass!,
+        inInclusiveRange(scenario.dryMass, scenario.saturatedMass),
+      );
     }
   });
 
@@ -69,6 +66,44 @@ void main() {
     final typical82 = result82.scenarios[1].dryMass;
     final typical90 = result90.scenarios[1].dryMass;
     expect(typical90 / typical82, closeTo(90 / 82, 1e-9));
+  });
+
+  test('el escenario típico se selecciona por P50 y no por posición', () {
+    const low = MassScenario(
+      label: 'Bajo',
+      quantile: 0.15,
+      dryMass: 10,
+      saturatedMass: 11,
+      immersedMass: 6,
+      density: 2000,
+    );
+    const typical = MassScenario(
+      label: 'Típico',
+      quantile: 0.50,
+      dryMass: 20,
+      saturatedMass: 21,
+      immersedMass: 11,
+      density: 2000,
+    );
+    const high = MassScenario(
+      label: 'Alto',
+      quantile: 0.85,
+      dryMass: 30,
+      saturatedMass: 31,
+      immersedMass: 16,
+      density: 2000,
+    );
+    const result = PredictionResult(
+      type: MeasurementType.compression,
+      modelCode: 'M12L-DIV',
+      targetAbsorption: 6,
+      sampleCount: 10,
+      confidence: 'Media',
+      scenarios: [high, low, typical],
+      warnings: [],
+    );
+
+    expect(result.typicalScenario, same(typical));
   });
 }
 

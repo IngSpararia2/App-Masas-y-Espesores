@@ -92,47 +92,55 @@ class PredictionService {
       (label: 'Alto', probability: 0.85),
     ];
 
-    final scenarios = definitions.map((definition) {
-      final representative = Statistics.weightedRepresentative<HistoricalSample>(
-        values: samples,
-        metric: type == MeasurementType.compression
-            ? (sample) => sample.dryMass
-            : (sample) => sample.specificDryMass!,
-        absorption: (sample) => sample.absorption,
-        targetAbsorption: targetAbsorption,
-        probability: definition.probability,
-      );
+    final scenarios =
+        definitions
+            .map((definition) {
+              final representative =
+                  Statistics.weightedRepresentative<HistoricalSample>(
+                    values: samples,
+                    metric: type == MeasurementType.compression
+                        ? (sample) => sample.dryMass
+                        : (sample) => sample.specificDryMass!,
+                    absorption: (sample) => sample.absorption,
+                    targetAbsorption: targetAbsorption,
+                    probability: definition.probability,
+                  );
 
-      final dryMass = type == MeasurementType.compression
-          ? representative.dryMass
-          : representative.specificDryMass! * targetThicknessMm!;
-      final density = representative.density.clamp(1200.0, 3000.0).toDouble();
-      final saturatedMass = dryMass * (1 + targetAbsorption / 100);
-      final immersedMass = saturatedMass - (dryMass * 1000 / density);
+              final dryMass = type == MeasurementType.compression
+                  ? representative.dryMass
+                  : representative.specificDryMass! * targetThicknessMm!;
+              final density = representative.density
+                  .clamp(1200.0, 3000.0)
+                  .toDouble();
+              final saturatedMass = dryMass * (1 + targetAbsorption / 100);
+              final immersedMass = saturatedMass - (dryMass * 1000 / density);
 
-      double? naturalMass;
-      if (type == MeasurementType.compression) {
-        var moisture = representative.moisturePercent;
-        moisture ??= _weightedMoistureFallback(
-          samples,
-          targetAbsorption,
-        );
-        moisture = moisture.clamp(0.0, targetAbsorption).toDouble();
-        naturalMass = dryMass * (1 + moisture / 100);
-        naturalMass = naturalMass.clamp(dryMass, saturatedMass).toDouble();
-      }
+              double? naturalMass;
+              if (type == MeasurementType.compression) {
+                var moisture = representative.moisturePercent;
+                moisture ??= _weightedMoistureFallback(
+                  samples,
+                  targetAbsorption,
+                );
+                moisture = moisture.clamp(0.0, targetAbsorption).toDouble();
+                naturalMass = dryMass * (1 + moisture / 100);
+                naturalMass = naturalMass
+                    .clamp(dryMass, saturatedMass)
+                    .toDouble();
+              }
 
-      return MassScenario(
-        label: definition.label,
-        quantile: definition.probability,
-        dryMass: dryMass,
-        saturatedMass: saturatedMass,
-        immersedMass: immersedMass,
-        naturalMass: naturalMass,
-        density: density,
-      );
-    }).toList(growable: false)
-      ..sort((a, b) => a.dryMass.compareTo(b.dryMass));
+              return MassScenario(
+                label: definition.label,
+                quantile: definition.probability,
+                dryMass: dryMass,
+                saturatedMass: saturatedMass,
+                immersedMass: immersedMass,
+                naturalMass: naturalMass,
+                density: density,
+              );
+            })
+            .toList(growable: false)
+          ..sort((a, b) => a.dryMass.compareTo(b.dryMass));
 
     final confidence = _confidence(
       sampleCount: samples.length,
@@ -194,15 +202,18 @@ class PredictionService {
     required double? targetThickness,
     required ({double min, double max})? thicknessRange,
   }) {
-    final absorptionInside = targetAbsorption >= absorptionRange.min &&
+    final absorptionInside =
+        targetAbsorption >= absorptionRange.min &&
         targetAbsorption <= absorptionRange.max;
-    final thicknessInside = targetThickness == null ||
+    final thicknessInside =
+        targetThickness == null ||
         thicknessRange == null ||
         (targetThickness >= thicknessRange.min &&
             targetThickness <= thicknessRange.max);
 
     if (sampleCount >= 30 && absorptionInside && thicknessInside) return 'Alta';
-    if (sampleCount >= 10 && absorptionInside && thicknessInside) return 'Media';
+    if (sampleCount >= 10 && absorptionInside && thicknessInside)
+      return 'Media';
     return 'Baja';
   }
 }

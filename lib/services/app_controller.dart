@@ -1,5 +1,4 @@
 import 'dart:isolate';
-import 'dart:typed_data';
 
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
@@ -13,8 +12,8 @@ class AppController extends ChangeNotifier {
   AppController({
     DatabaseService? database,
     PredictionService? predictionService,
-  })  : _database = database ?? DatabaseService(),
-        _predictionService = predictionService ?? const PredictionService();
+  }) : _database = database ?? DatabaseService(),
+       _predictionService = predictionService ?? const PredictionService();
 
   final DatabaseService _database;
   final PredictionService _predictionService;
@@ -34,9 +33,9 @@ class AppController extends ChangeNotifier {
   String get databasePath => _database.databasePath;
 
   List<ModelSummary> modelsFor(MeasurementType type) => switch (type) {
-        MeasurementType.compression => compressionModels,
-        MeasurementType.flexure => flexureModels,
-      };
+    MeasurementType.compression => compressionModels,
+    MeasurementType.flexure => flexureModels,
+  };
 
   Future<void> initialize() async {
     initializing = true;
@@ -56,14 +55,10 @@ class AppController extends ChangeNotifier {
     stats = await _database.getStats();
     compressionModels = (await _database.getModelSummaries(
       MeasurementType.compression,
-    ))
-        .where((model) => model.canPredict)
-        .toList(growable: false);
+    )).where((model) => model.canPredict).toList(growable: false);
     flexureModels = (await _database.getModelSummaries(
       MeasurementType.flexure,
-    ))
-        .where((model) => model.canPredict)
-        .toList(growable: false);
+    )).where((model) => model.canPredict).toList(growable: false);
     recentImports = await _database.getRecentImports();
     notifyListeners();
   }
@@ -151,6 +146,32 @@ class AppController extends ChangeNotifier {
     lastPrediction = result;
     notifyListeners();
     return result;
+  }
+
+  Future<List<PredictionResult>> calculateLaboratoryTrials({
+    required MeasurementType type,
+    required String modelCode,
+    required List<LaboratoryTrialTarget> targets,
+  }) async {
+    if (targets.isEmpty) {
+      throw ArgumentError('Ingrese al menos un elemento para calcular.');
+    }
+
+    clearMessages();
+    final samples = await _database.getSamples(type, modelCode);
+    final results = targets
+        .map(
+          (target) => _predictionService.predict(
+            type: type,
+            modelCode: modelCode,
+            sourceSamples: samples,
+            targetAbsorption: target.absorption,
+            targetThicknessMm: target.thicknessMm,
+          ),
+        )
+        .toList(growable: false);
+    notifyListeners();
+    return results;
   }
 
   Future<String> createBackup() async {

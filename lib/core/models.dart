@@ -4,25 +4,25 @@ enum MeasurementType { compression, flexure }
 
 extension MeasurementTypeLabel on MeasurementType {
   String get databaseValue => switch (this) {
-        MeasurementType.compression => 'compression',
-        MeasurementType.flexure => 'flexure',
-      };
+    MeasurementType.compression => 'compression',
+    MeasurementType.flexure => 'flexure',
+  };
 
   String get label => switch (this) {
-        MeasurementType.compression => 'Compresión',
-        MeasurementType.flexure => 'Flexotracción',
-      };
+    MeasurementType.compression => 'Compresión',
+    MeasurementType.flexure => 'Flexotracción',
+  };
 
   String get massUnit => switch (this) {
-        MeasurementType.compression => 'kg',
-        MeasurementType.flexure => 'g',
-      };
+    MeasurementType.compression => 'kg',
+    MeasurementType.flexure => 'g',
+  };
 
   static MeasurementType fromDatabase(String value) => switch (value) {
-        'compression' => MeasurementType.compression,
-        'flexure' => MeasurementType.flexure,
-        _ => throw ArgumentError('Tipo de medición desconocido: $value'),
-      };
+    'compression' => MeasurementType.compression,
+    'flexure' => MeasurementType.flexure,
+    _ => throw ArgumentError('Tipo de medición desconocido: $value'),
+  };
 }
 
 class HistoricalSample {
@@ -87,6 +87,13 @@ class ModelSummary {
   bool get canPredict => validSamples >= 3;
 }
 
+class LaboratoryTrialTarget {
+  const LaboratoryTrialTarget({required this.absorption, this.thicknessMm});
+
+  final double absorption;
+  final double? thicknessMm;
+}
+
 class MassScenario {
   const MassScenario({
     required this.label,
@@ -131,6 +138,21 @@ class PredictionResult {
   final List<String> warnings;
   final ({double min, double max})? historicalAbsorptionRange;
   final ({double min, double max})? historicalThicknessRange;
+
+  MassScenario get typicalScenario {
+    if (scenarios.isEmpty) {
+      throw StateError('La predicción no contiene escenarios.');
+    }
+    return scenarios.firstWhere(
+      (scenario) => scenario.quantile == 0.50,
+      orElse: () => scenarios.reduce(
+        (current, candidate) =>
+            (candidate.quantile - 0.50).abs() < (current.quantile - 0.50).abs()
+            ? candidate
+            : current,
+      ),
+    );
+  }
 }
 
 class ImportSummary {
@@ -170,8 +192,7 @@ class ImportSummary {
       updated: (map['updated'] as num?)?.toInt() ?? 0,
       unchanged: (map['unchanged'] as num?)?.toInt() ?? 0,
       rejected: (map['rejected'] as num?)?.toInt() ?? 0,
-      validForPrediction:
-          (map['validForPrediction'] as num?)?.toInt() ?? 0,
+      validForPrediction: (map['validForPrediction'] as num?)?.toInt() ?? 0,
       alreadyImported: map['alreadyImported'] as bool? ?? false,
       notes: (map['notes'] as List<Object?>? ?? const <Object?>[])
           .map((value) => value.toString())
@@ -181,10 +202,7 @@ class ImportSummary {
 }
 
 class ImportPayload {
-  const ImportPayload({
-    required this.fileName,
-    required this.bytes,
-  });
+  const ImportPayload({required this.fileName, required this.bytes});
 
   final String fileName;
   final Uint8List bytes;

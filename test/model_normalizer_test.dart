@@ -10,13 +10,7 @@ void main() {
   });
 
   test('elimina sufijo de fecha cuando no existe ruta de modelo', () {
-    expect(
-      ModelNormalizer.chooseFlexureModel(sampleId: 'AH4-1213'),
-      'AH4',
-    );
-    expect(
-      ModelNormalizer.chooseFlexureModel(sampleId: 'AR6-ANT'),
-      'AR6-ANT',
-    );
+    expect(ModelNormalizer.chooseFlexureModel(sampleId: 'AH4-1213'), 'AH4');
+    expect(ModelNormalizer.chooseFlexureModel(sampleId: 'AR6-ANT'), 'AR6-ANT');
   });
 }

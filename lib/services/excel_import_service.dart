@@ -40,7 +40,9 @@ class ExcelImportService {
           'rejected': 0,
           'validForPrediction': 0,
           'alreadyImported': true,
-          'notes': <String>['El contenido exacto de este archivo ya fue importado.'],
+          'notes': <String>[
+            'El contenido exacto de este archivo ya fue importado.',
+          ],
         };
       }
 
@@ -58,15 +60,15 @@ class ExcelImportService {
 
       final parsed = switch (type) {
         MeasurementType.compression => _parseCompression(
-            rows: rows,
-            index: index,
-            fileName: fileName,
-          ),
+          rows: rows,
+          index: index,
+          fileName: fileName,
+        ),
         MeasurementType.flexure => _parseFlexure(
-            rows: rows,
-            index: index,
-            fileName: fileName,
-          ),
+          rows: rows,
+          index: index,
+          fileName: fileName,
+        ),
       };
 
       final normalized = _normalizeMassUnits(parsed, type);
@@ -84,14 +86,20 @@ class ExcelImportService {
         );
       }
       if (type == MeasurementType.flexure &&
-          prepared.any((record) => record.flags.contains('columnas_densidad_absorcion_intercambiadas'))) {
+          prepared.any(
+            (record) => record.flags.contains(
+              'columnas_densidad_absorcion_intercambiadas',
+            ),
+          )) {
         notes.add(
           'Se detectaron columnas de densidad y absorción intercambiadas; '
           'ambos valores se recalcularon a partir de las masas.',
         );
       }
       if (normalized.any((record) => record.unitConverted)) {
-        notes.add('Se normalizaron automáticamente las unidades de masa del archivo.');
+        notes.add(
+          'Se normalizaron automáticamente las unidades de masa del archivo.',
+        );
       }
 
       var inserted = 0;
@@ -204,25 +212,28 @@ class ExcelImportService {
           }
         }
 
-        db.execute('''
+        db.execute(
+          '''
           INSERT INTO import_batches (
             file_name, file_hash, source_type, total_specimens,
             inserted, updated, unchanged, rejected,
             valid_for_prediction, notes, imported_at
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        ''', [
-          fileName,
-          fileHash,
-          type.databaseValue,
-          prepared.length,
-          inserted,
-          updated,
-          unchanged,
-          rejected,
-          validForPrediction,
-          notes.join('|'),
-          now,
-        ]);
+        ''',
+          [
+            fileName,
+            fileHash,
+            type.databaseValue,
+            prepared.length,
+            inserted,
+            updated,
+            unchanged,
+            rejected,
+            validForPrediction,
+            notes.join('|'),
+            now,
+          ],
+        );
         db.execute('COMMIT;');
       } catch (_) {
         db.execute('ROLLBACK;');
@@ -292,24 +303,35 @@ class ExcelImportService {
 
       for (var specimen = 1; specimen <= 3; specimen++) {
         final prefix = 'bloque $specimen';
-        final saturated = _number(_at(row, index.field(prefix, 'masa saturada')));
+        final saturated = _number(
+          _at(row, index.field(prefix, 'masa saturada')),
+        );
         final immersed = _number(_at(row, index.field(prefix, 'masa inmersa')));
         final dry = _number(_at(row, index.field(prefix, 'masa seca')));
         final natural = _number(_at(row, index.field(prefix, 'masa natural')));
-        if (<double?>[saturated, immersed, dry, natural].every((value) => value == null)) {
+        if (<double?>[
+          saturated,
+          immersed,
+          dry,
+          natural,
+        ].every((value) => value == null)) {
           continue;
         }
 
-        final specimenMaterial = _text(_at(row, index.field(prefix, 'material')));
-        final sampleId = _text(_at(row, index.firstField(prefix, const [
-          'id muestra',
-          'id de muestra',
-        ])));
-        final itemCode = _text(_at(row, index.firstField(prefix, const [
-          'codigo item',
-          'item',
-        ])));
-        final rawModel = routeModel ?? specimenMaterial ?? rowMaterial ?? sampleId;
+        final specimenMaterial = _text(
+          _at(row, index.field(prefix, 'material')),
+        );
+        final sampleId = _text(
+          _at(
+            row,
+            index.firstField(prefix, const ['id muestra', 'id de muestra']),
+          ),
+        );
+        final itemCode = _text(
+          _at(row, index.firstField(prefix, const ['codigo item', 'item'])),
+        );
+        final rawModel =
+            routeModel ?? specimenMaterial ?? rowMaterial ?? sampleId;
         final model = ModelNormalizer.chooseCompressionModel(
           routeModel: routeModel,
           specimenMaterial: specimenMaterial,
@@ -317,34 +339,34 @@ class ExcelImportService {
           sampleId: sampleId,
         );
 
-        output.add(_DraftRecord(
-          type: MeasurementType.compression,
-          fileName: fileName,
-          sourceRow: rowIndex + 1,
-          specimenIndex: specimen,
-          modelCode: model,
-          rawModel: rawModel,
-          testDate: testDate,
-          reportOrTest: report,
-          sampleId: sampleId,
-          itemCode: itemCode,
-          relativePath: relativePath,
-          saturatedMass: saturated,
-          immersedMass: immersed,
-          dryMass: dry,
-          naturalMass: natural,
-          rawAbsorption: _number(_at(row, index.field(prefix, 'absorcion'))),
-          rawDensity: _number(_at(row, index.field(prefix, 'densidad'))),
-          thicknessMm: _number(_at(row, index.field(prefix, 'espesor'))),
-          widthMm: _number(_at(row, index.firstField(prefix, const [
-            'longitud',
-            'ancho',
-          ]))),
-          lengthMm: _number(_at(row, index.firstField(prefix, const [
-            'altura',
-            'longitud',
-          ]))),
-        ));
+        output.add(
+          _DraftRecord(
+            type: MeasurementType.compression,
+            fileName: fileName,
+            sourceRow: rowIndex + 1,
+            specimenIndex: specimen,
+            modelCode: model,
+            rawModel: rawModel,
+            testDate: testDate,
+            reportOrTest: report,
+            sampleId: sampleId,
+            itemCode: itemCode,
+            relativePath: relativePath,
+            saturatedMass: saturated,
+            immersedMass: immersed,
+            dryMass: dry,
+            naturalMass: natural,
+            rawAbsorption: _number(_at(row, index.field(prefix, 'absorcion'))),
+            rawDensity: _number(_at(row, index.field(prefix, 'densidad'))),
+            thicknessMm: _number(_at(row, index.field(prefix, 'espesor'))),
+            widthMm: _number(
+              _at(row, index.firstField(prefix, const ['longitud', 'ancho'])),
+            ),
+            lengthMm: _number(
+              _at(row, index.firstField(prefix, const ['altura', 'longitud'])),
+            ),
+          ),
+        );
       }
     }
     return output;
@@ -373,32 +395,53 @@ class ExcelImportService {
 
       for (var specimen = 1; specimen <= 5; specimen++) {
         final prefix = 'muestra $specimen';
-        final saturated = _number(_at(row, index.field(prefix, 'masa saturada')));
+        final saturated = _number(
+          _at(row, index.field(prefix, 'masa saturada')),
+        );
         final immersed = _number(_at(row, index.field(prefix, 'masa inmersa')));
         final dry = _number(_at(row, index.field(prefix, 'masa seca')));
-        final thickness = _number(_at(row, index.firstField(prefix, const [
-          'espesor del especimen',
-          'espesor',
-        ])));
-        if (<double?>[saturated, immersed, dry, thickness]
-            .every((value) => value == null)) {
+        final thickness = _number(
+          _at(
+            row,
+            index.firstField(prefix, const [
+              'espesor del especimen',
+              'espesor',
+            ]),
+          ),
+        );
+        if (<double?>[
+          saturated,
+          immersed,
+          dry,
+          thickness,
+        ].every((value) => value == null)) {
           continue;
         }
 
-        final sampleId = _text(_at(row, index.firstField(prefix, const [
-          'id muestra',
-          'id de muestra',
-        ])));
-        final itemCode = _text(_at(row, index.firstField(prefix, const [
-          'item 1',
-          'item',
-          'codigo item',
-        ])));
-        final specimenMaterial = _text(_at(row, index.field(prefix, 'material')));
-        final testNumber = _text(_at(row, index.firstField(prefix, const [
-          'no de ensayo',
-          'numero de ensayo',
-        ])));
+        final sampleId = _text(
+          _at(
+            row,
+            index.firstField(prefix, const ['id muestra', 'id de muestra']),
+          ),
+        );
+        final itemCode = _text(
+          _at(
+            row,
+            index.firstField(prefix, const ['item 1', 'item', 'codigo item']),
+          ),
+        );
+        final specimenMaterial = _text(
+          _at(row, index.field(prefix, 'material')),
+        );
+        final testNumber = _text(
+          _at(
+            row,
+            index.firstField(prefix, const [
+              'no de ensayo',
+              'numero de ensayo',
+            ]),
+          ),
+        );
         final model = ModelNormalizer.chooseFlexureModel(
           routeModel: routeModel,
           sampleId: sampleId,
@@ -407,34 +450,46 @@ class ExcelImportService {
         );
         final rawModel = routeModel ?? sampleId ?? itemCode ?? specimenMaterial;
 
-        output.add(_DraftRecord(
-          type: MeasurementType.flexure,
-          fileName: fileName,
-          sourceRow: rowIndex + 1,
-          specimenIndex: specimen,
-          modelCode: model,
-          rawModel: rawModel,
-          testDate: testDate,
-          reportOrTest: testNumber,
-          sampleId: sampleId,
-          itemCode: itemCode,
-          relativePath: relativePath,
-          saturatedMass: saturated,
-          immersedMass: immersed,
-          dryMass: dry,
-          naturalMass: null,
-          rawAbsorption: _number(_at(row, index.field(prefix, 'absorcion'))),
-          rawDensity: _number(_at(row, index.field(prefix, 'densidad'))),
-          thicknessMm: thickness,
-          widthMm: _number(_at(row, index.firstField(prefix, const [
-            'ancho real del especimen',
-            'ancho',
-          ]))),
-          lengthMm: _number(_at(row, index.firstField(prefix, const [
-            'longitud rectangulo inscrito',
-            'longitud',
-          ]))),
-        ));
+        output.add(
+          _DraftRecord(
+            type: MeasurementType.flexure,
+            fileName: fileName,
+            sourceRow: rowIndex + 1,
+            specimenIndex: specimen,
+            modelCode: model,
+            rawModel: rawModel,
+            testDate: testDate,
+            reportOrTest: testNumber,
+            sampleId: sampleId,
+            itemCode: itemCode,
+            relativePath: relativePath,
+            saturatedMass: saturated,
+            immersedMass: immersed,
+            dryMass: dry,
+            naturalMass: null,
+            rawAbsorption: _number(_at(row, index.field(prefix, 'absorcion'))),
+            rawDensity: _number(_at(row, index.field(prefix, 'densidad'))),
+            thicknessMm: thickness,
+            widthMm: _number(
+              _at(
+                row,
+                index.firstField(prefix, const [
+                  'ancho real del especimen',
+                  'ancho',
+                ]),
+              ),
+            ),
+            lengthMm: _number(
+              _at(
+                row,
+                index.firstField(prefix, const [
+                  'longitud rectangulo inscrito',
+                  'longitud',
+                ]),
+              ),
+            ),
+          ),
+        );
       }
     }
     return output;
@@ -486,8 +541,11 @@ class ExcelImportService {
 
     final rawAbsorption = draft.rawAbsorption;
     final rawDensity = draft.rawDensity;
-    if (rawAbsorption != null && rawDensity != null &&
-        rawAbsorption > 100 && rawDensity >= 0 && rawDensity < 100) {
+    if (rawAbsorption != null &&
+        rawDensity != null &&
+        rawAbsorption > 100 &&
+        rawDensity >= 0 &&
+        rawDensity < 100) {
       flags.add('columnas_densidad_absorcion_intercambiadas');
     }
     if (absorption != null && rawAbsorption != null) {
@@ -500,9 +558,8 @@ class ExcelImportService {
       }
     }
     if (density != null && rawDensity != null) {
-      final rawCandidate = rawAbsorption != null &&
-              rawAbsorption > 100 &&
-              rawDensity < 100
+      final rawCandidate =
+          rawAbsorption != null && rawAbsorption > 100 && rawDensity < 100
           ? rawAbsorption
           : rawDensity;
       if ((rawCandidate - density).abs() > math.max(100, density * 0.15)) {
@@ -517,15 +574,18 @@ class ExcelImportService {
       }
     }
 
-    final physicalOrder = hasMasses &&
+    final physicalOrder =
+        hasMasses &&
         saturated! >= dry! &&
         immersed! >= 0 &&
         immersed! < saturated!;
-    final validAbsorption = absorption != null &&
+    final validAbsorption =
+        absorption != null &&
         absorption.isFinite &&
         absorption >= 0 &&
         absorption <= 30;
-    final validDensity = density != null &&
+    final validDensity =
+        density != null &&
         density.isFinite &&
         density >= 1200 &&
         density <= 3000;
@@ -533,12 +593,14 @@ class ExcelImportService {
       MeasurementType.compression => dry != null && dry > 0.05 && dry < 100,
       MeasurementType.flexure => dry != null && dry > 100 && dry < 100000,
     };
-    final validThickness = draft.type == MeasurementType.compression ||
+    final validThickness =
+        draft.type == MeasurementType.compression ||
         (draft.thicknessMm != null &&
             draft.thicknessMm! >= 10 &&
             draft.thicknessMm! <= 300);
 
-    final valid = physicalOrder &&
+    final valid =
+        physicalOrder &&
         validAbsorption &&
         validDensity &&
         validMassRange &&
@@ -569,7 +631,9 @@ class ExcelImportService {
         ..add(draft.relativePath ?? '')
         ..add(draft.sourceRow.toString());
     }
-    final dedupeKey = sha256.convert(utf8.encode(identityParts.join('|'))).toString();
+    final dedupeKey = sha256
+        .convert(utf8.encode(identityParts.join('|')))
+        .toString();
 
     final contentParts = <Object?>[
       draft.modelCode,
@@ -584,7 +648,9 @@ class ExcelImportService {
       draft.lengthMm,
       valid,
     ];
-    final contentHash = sha256.convert(utf8.encode(jsonEncode(contentParts))).toString();
+    final contentHash = sha256
+        .convert(utf8.encode(jsonEncode(contentParts)))
+        .toString();
 
     return _PreparedRecord(
       type: draft.type,
@@ -652,9 +718,9 @@ class ExcelImportService {
 
 class _HeaderIndex {
   _HeaderIndex(List<String> headers)
-      : _indices = <String, int>{
-          for (var i = 0; i < headers.length; i++) _normalize(headers[i]): i,
-        };
+    : _indices = <String, int>{
+        for (var i = 0; i < headers.length; i++) _normalize(headers[i]): i,
+      };
 
   final Map<String, int> _indices;
 
@@ -827,7 +893,8 @@ class _PreparedRecord {
   final String dedupeKey;
   final String contentHash;
 
-  bool get hasMinimumMassData => saturatedMass != null &&
+  bool get hasMinimumMassData =>
+      saturatedMass != null &&
       immersedMass != null &&
       dryMass != null &&
       absorption != null &&

@@ -83,9 +83,7 @@ class XlsxTableReader {
 
     final worksheetFile = _findFile(archive, worksheetPath);
     if (worksheetFile == null) {
-      throw FormatException(
-        'No se encontró la hoja interna "$worksheetPath".',
-      );
+      throw FormatException('No se encontró la hoja interna "$worksheetPath".');
     }
 
     final sharedStrings = _readSharedStrings(archive);
@@ -134,16 +132,20 @@ class XlsxTableReader {
   }
 
   static String? _firstWorksheetPath(Archive archive) {
-    final candidates = archive.files
-        .where((file) =>
-            file.isFile &&
-            file.name.replaceAll('\\', '/').toLowerCase().startsWith(
-                  'xl/worksheets/',
-                ) &&
-            file.name.toLowerCase().endsWith('.xml'))
-        .map((file) => file.name.replaceAll('\\', '/'))
-        .toList(growable: false)
-      ..sort();
+    final candidates =
+        archive.files
+            .where(
+              (file) =>
+                  file.isFile &&
+                  file.name
+                      .replaceAll('\\', '/')
+                      .toLowerCase()
+                      .startsWith('xl/worksheets/') &&
+                  file.name.toLowerCase().endsWith('.xml'),
+            )
+            .map((file) => file.name.replaceAll('\\', '/'))
+            .toList(growable: false)
+          ..sort();
     return candidates.isEmpty ? null : candidates.first;
   }
 
@@ -152,9 +154,12 @@ class XlsxTableReader {
     if (file == null) return const <String>[];
 
     final document = _parseXml(file, 'xl/sharedStrings.xml');
-    return document.findAllElements('si').map((item) {
-      return item.findAllElements('t').map((text) => text.innerText).join();
-    }).toList(growable: false);
+    return document
+        .findAllElements('si')
+        .map((item) {
+          return item.findAllElements('t').map((text) => text.innerText).join();
+        })
+        .toList(growable: false);
   }
 
   static List<List<Object?>> _readRows(

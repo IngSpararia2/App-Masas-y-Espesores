@@ -46,7 +46,7 @@ if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) {
 $BackupRoot = Join-Path $env:TEMP ("masalab_source_" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $BackupRoot | Out-Null
 
-$FoldersToKeep = @("lib", "test", "docs", "scripts")
+$FoldersToKeep = @("lib", "test", "docs", "scripts", "assets")
 foreach ($Folder in $FoldersToKeep) {
     if (Test-Path $Folder) {
         Copy-Item $Folder -Destination $BackupRoot -Recurse -Force
@@ -101,6 +101,7 @@ foreach ($File in $FilesToKeep) {
 
 Remove-Item $BackupRoot -Recurse -Force
 Apply-SafeNativeBranding
+& "$PSScriptRoot\apply_branding.ps1" -Platform All
 
 flutter pub get
 if ($LASTEXITCODE -ne 0) {

@@ -23,14 +23,22 @@ class _AppShellState extends State<AppShell> {
       animation: widget.controller,
       builder: (context, _) {
         if (widget.controller.initializing) {
-          return const Scaffold(
+          return Scaffold(
             body: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 18),
-                  Text('Preparando la base de datos…'),
+                  Image.asset(
+                    'assets/branding/app_icon_source.png',
+                    width: 190,
+                    height: 190,
+                    filterQuality: FilterQuality.high,
+                    semanticLabel: 'App Laboratorista',
+                  ),
+                  const SizedBox(height: 18),
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 14),
+                  const Text('Preparando la base de datos…'),
                 ],
               ),
             ),
@@ -95,9 +103,8 @@ class _AppShellState extends State<AppShell> {
               const _DeveloperCredit(),
               NavigationBar(
                 selectedIndex: _index,
-                onDestinationSelected: (value) => setState(
-                  () => _index = value,
-                ),
+                onDestinationSelected: (value) =>
+                    setState(() => _index = value),
                 destinations: const [
                   NavigationDestination(
                     icon: Icon(Icons.calculate_outlined),
@@ -139,18 +146,16 @@ class _DeveloperCredit extends StatelessWidget {
         width: double.infinity,
         decoration: BoxDecoration(
           color: colors.surface,
-          border: Border(
-            top: BorderSide(color: colors.outlineVariant),
-          ),
+          border: Border(top: BorderSide(color: colors.outlineVariant)),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Text(
           _text,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: colors.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-              ),
+            color: colors.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );
@@ -180,7 +185,9 @@ class _MessageBanner extends StatelessWidget {
         children: [
           Icon(icon, color: foreground),
           const SizedBox(width: 10),
-          Expanded(child: Text(message, style: TextStyle(color: foreground))),
+          Expanded(
+            child: Text(message, style: TextStyle(color: foreground)),
+          ),
         ],
       ),
     );

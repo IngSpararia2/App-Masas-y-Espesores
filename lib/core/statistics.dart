@@ -39,7 +39,10 @@ class Statistics {
     int minimumCount = 8,
   }) {
     if (values.length < minimumCount) return List<T>.of(values);
-    final metrics = values.map(selector).where((value) => value.isFinite).toList();
+    final metrics = values
+        .map(selector)
+        .where((value) => value.isFinite)
+        .toList();
     if (metrics.length < minimumCount) return List<T>.of(values);
 
     final center = median(metrics);
@@ -68,14 +71,16 @@ class Statistics {
     }
 
     final absorptionValues = values.map(absorption).toList();
-    final bandwidth = math.max(1.5, math.max(0.75, iqr(absorptionValues) * 0.5));
+    final bandwidth = math.max(
+      1.5,
+      math.max(0.75, iqr(absorptionValues) * 0.5),
+    );
 
     final weighted = values.map((value) {
       final distance = (absorption(value) - targetAbsorption) / bandwidth;
       final weight = math.exp(-0.5 * distance * distance) + 0.02;
       return (value: value, metric: metric(value), weight: weight);
-    }).toList()
-      ..sort((a, b) => a.metric.compareTo(b.metric));
+    }).toList()..sort((a, b) => a.metric.compareTo(b.metric));
 
     final totalWeight = weighted.fold<double>(
       0,

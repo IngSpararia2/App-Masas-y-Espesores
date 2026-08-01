@@ -22,21 +22,22 @@ class DataScreen extends StatelessWidget {
                 Text(
                   'Base de datos local',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'Los datos permanecen en el dispositivo y funcionan sin conexión.',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 18),
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final columns = constraints.maxWidth >= 760 ? 4 : 2;
-                    final width = (constraints.maxWidth - (columns - 1) * 10) / columns;
+                    final width =
+                        (constraints.maxWidth - (columns - 1) * 10) / columns;
                     return Wrap(
                       spacing: 10,
                       runSpacing: 10,
@@ -78,7 +79,10 @@ class DataScreen extends StatelessWidget {
                       children: [
                         const Text(
                           'Mantenimiento',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         SelectableText(
@@ -97,7 +101,9 @@ class DataScreen extends StatelessWidget {
                               icon: controller.backingUp
                                   ? const SizedBox.square(
                                       dimension: 17,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
                                     )
                                   : const Icon(Icons.backup_outlined),
                               label: const Text('Crear respaldo'),
@@ -118,9 +124,9 @@ class DataScreen extends StatelessWidget {
                 const SizedBox(height: 18),
                 Text(
                   'Importaciones recientes',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 10),
                 if (controller.recentImports.isEmpty)
@@ -134,7 +140,11 @@ class DataScreen extends StatelessWidget {
                   Card(
                     child: Column(
                       children: [
-                        for (var i = 0; i < controller.recentImports.length; i++) ...[
+                        for (
+                          var i = 0;
+                          i < controller.recentImports.length;
+                          i++
+                        ) ...[
                           _ImportRow(batch: controller.recentImports[i]),
                           if (i < controller.recentImports.length - 1)
                             const Divider(height: 1),
@@ -202,8 +212,8 @@ class _StatCard extends StatelessWidget {
               Text(
                 value,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 2),
               Text(label),

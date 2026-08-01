@@ -20,7 +20,7 @@ if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) {
 $BackupRoot = Join-Path $env:TEMP ("masalab_windows_repair_" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $BackupRoot | Out-Null
 
-$FoldersToKeep = @("lib", "test", "docs", "scripts")
+$FoldersToKeep = @("lib", "test", "docs", "scripts", "assets")
 $FilesToKeep = @(
     "pubspec.yaml",
     "analysis_options.yaml",
@@ -83,6 +83,8 @@ try {
 
     # Runner.rc se conserva sin modificaciones para evitar problemas de
     # codificación con rc.exe/Visual Studio 2019.
+
+    & "$PSScriptRoot\apply_branding.ps1" -Platform Windows
 
     flutter clean
     if ($LASTEXITCODE -ne 0) {
