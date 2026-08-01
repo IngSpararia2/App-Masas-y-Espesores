@@ -1,7 +1,9 @@
-$ErrorActionPreference = "Stop"
+﻿$ErrorActionPreference = "Stop"
 
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $ProjectRoot
+. "$PSScriptRoot\flutter_environment.ps1"
+$Flutter = Initialize-MasaLabFlutterEnvironment -ProjectRoot $ProjectRoot
 
 function Write-AsciiTextFile {
     param(
@@ -39,39 +41,11 @@ function Apply-SafeNativeBranding {
     # que rc.exe de Visual Studio 2019 interpreta incorrectamente.
 }
 
-if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) {
-    throw "Flutter no está disponible en PATH. Instale Flutter estable y vuelva a ejecutar este script."
+$VersionOutput = & $Flutter --version --machine
+if ($LASTEXITCODE -ne 0) {
+    throw "No se pudo consultar la versión de Flutter."
 }
-
-$BackupRoot = Join-Path $env:TEMP ("masalab_source_" + [guid]::NewGuid().ToString("N"))
-New-Item -ItemType Directory -Path $BackupRoot | Out-Null
-
-$FoldersToKeep = @("lib", "test", "docs", "scripts", "assets")
-foreach ($Folder in $FoldersToKeep) {
-    if (Test-Path $Folder) {
-        Copy-Item $Folder -Destination $BackupRoot -Recurse -Force
-    }
-}
-
-$FilesToKeep = @(
-    "pubspec.yaml",
-    "analysis_options.yaml",
-    "README.md",
-    "GUIA_RAPIDA.md",
-    "LICENSE.txt",
-    ".gitignore"
-)
-foreach ($File in $FilesToKeep) {
-    if (Test-Path $File) {
-        Copy-Item $File -Destination $BackupRoot -Force
-    }
-}
-
-if (Test-Path "android") { Remove-Item "android" -Recurse -Force }
-if (Test-Path "windows") { Remove-Item "windows" -Recurse -Force }
-if (Test-Path "build") { Remove-Item "build" -Recurse -Force }
-
-$VersionJson = flutter --version --machine | ConvertFrom-Json
+$VersionJson = $VersionOutput | ConvertFrom-Json
 $VersionParts = $VersionJson.frameworkVersion.Split('.')
 $Major = [int]$VersionParts[0]
 $Minor = [int]$VersionParts[1]
@@ -79,31 +53,78 @@ if ($Major -lt 3 -or ($Major -eq 3 -and $Minor -lt 38)) {
     throw "Este proyecto requiere Flutter 3.38 o superior. Versión encontrada: $($VersionJson.frameworkVersion)"
 }
 
-flutter config --enable-windows-desktop | Out-Null
-flutter create --platforms=android,windows --org com.samuelpararia --project-name masalab_historico .
-if ($LASTEXITCODE -ne 0) {
-    throw "flutter create no pudo generar las plataformas nativas."
+$MissingPlatforms = @()
+if (-not (Test-Path "android\app")) {
+    $MissingPlatforms += "android"
+}
+if (-not (Test-Path "windows\CMakeLists.txt")) {
+    $MissingPlatforms += "windows"
 }
 
-foreach ($Folder in $FoldersToKeep) {
-    $Source = Join-Path $BackupRoot $Folder
-    if (Test-Path $Source) {
-        if (Test-Path $Folder) { Remove-Item $Folder -Recurse -Force }
-        Copy-Item $Source -Destination $ProjectRoot -Recurse -Force
+if ($MissingPlatforms.Count -gt 0) {
+    $BackupBase = Join-Path $env:MASALAB_CACHE_ROOT "backups"
+    New-Item -ItemType Directory -Path $BackupBase -Force | Out-Null
+    $BackupRoot = Join-Path $BackupBase ("masalab_source_" + [guid]::NewGuid().ToString("N"))
+    New-Item -ItemType Directory -Path $BackupRoot | Out-Null
+
+    $FoldersToKeep = @("lib", "test", "docs", "scripts", "assets")
+    $FilesToKeep = @(
+        "pubspec.yaml",
+        "analysis_options.yaml",
+        "README.md",
+        "GUIA_RAPIDA.md",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        ".gitignore"
+    )
+
+    try {
+        foreach ($Folder in $FoldersToKeep) {
+            if (Test-Path $Folder) {
+                Copy-Item $Folder -Destination $BackupRoot -Recurse -Force
+            }
+        }
+        foreach ($File in $FilesToKeep) {
+            if (Test-Path $File) {
+                Copy-Item $File -Destination $BackupRoot -Force
+            }
+        }
+
+        & $Flutter config --enable-windows-desktop | Out-Null
+        $PlatformsArgument = $MissingPlatforms -join ","
+        & $Flutter create "--platforms=$PlatformsArgument" --org com.samuelpararia --project-name masalab_historico .
+        if ($LASTEXITCODE -ne 0) {
+            throw "flutter create no pudo generar las plataformas nativas faltantes."
+        }
+
     }
-}
-foreach ($File in $FilesToKeep) {
-    $Source = Join-Path $BackupRoot $File
-    if (Test-Path $Source) {
-        Copy-Item $Source -Destination $ProjectRoot -Force
+    finally {
+        # Restore the app sources whether flutter create succeeds or fails. The
+        # command is only allowed to add the missing native runner.
+        foreach ($Folder in $FoldersToKeep) {
+            $Source = Join-Path $BackupRoot $Folder
+            if (Test-Path $Source) {
+                Copy-Item $Source -Destination $ProjectRoot -Recurse -Force
+            }
+        }
+        foreach ($File in $FilesToKeep) {
+            $Source = Join-Path $BackupRoot $File
+            if (Test-Path $Source) {
+                Copy-Item $Source -Destination $ProjectRoot -Force
+            }
+        }
+        if (Test-Path $BackupRoot) {
+            Remove-Item $BackupRoot -Recurse -Force
+        }
     }
+} else {
+    Write-Host "Las plataformas Android y Windows ya están preparadas." -ForegroundColor DarkGray
 }
 
-Remove-Item $BackupRoot -Recurse -Force
 Apply-SafeNativeBranding
 & "$PSScriptRoot\apply_branding.ps1" -Platform All
 
-flutter pub get
+& $Flutter pub get
 if ($LASTEXITCODE -ne 0) {
     throw "flutter pub get terminó con errores."
 }
@@ -113,4 +134,4 @@ Write-Host "Proyecto preparado correctamente." -ForegroundColor Green
 Write-Host "Ejecute: .\scripts\run_windows.ps1"
 Write-Host "APK:     .\scripts\build_apk.ps1"
 Write-Host ""
-flutter doctor
+& $Flutter doctor

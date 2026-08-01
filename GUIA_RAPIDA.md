@@ -2,31 +2,29 @@
 
 ## Requisitos
 
-1. Flutter 3.38 o superior en `PATH`.
+1. Flutter 3.38 o superior en `PATH`, `FLUTTER_ROOT` o dentro de
+   `%USERPROFILE%\flutter\<version>`.
 2. Android Studio con Android SDK para generar APK.
-3. Visual Studio 2022 con la carga **Desktop development with C++** para abrir la aplicación en Windows.
+3. Visual Studio actualizado con la carga **Desktop development with C++** para
+   abrir la aplicación en Windows.
 
-Compruebe la instalación con:
+Si Flutter está en `PATH`, compruebe la instalación manualmente con:
 
 ```powershell
-flutter doctor
+flutter doctor -v
 ```
 
-## Primera preparación
+## Ubicación del proyecto
 
-Extraiga el ZIP en una carpeta corta, por ejemplo:
+El repositorio puede estar en C: o D:. Se recomienda una ruta corta, por ejemplo:
 
 ```text
-C:\Proyectos\masalab_historico
+D:\Samuel\App-Masas-y-Espesores
 ```
 
-Después haga doble clic en:
-
-```text
-PREPARAR_PROYECTO.bat
-```
-
-Este paso genera las carpetas nativas `android` y `windows` con la versión de Flutter instalada y descarga las dependencias.
+Las carpetas `android` y `windows` ya vienen incluidas. No ejecute una preparación
+destructiva para el uso normal. `PREPARAR_PROYECTO.bat` queda reservado para
+recuperar una plataforma nativa ausente o dañada.
 
 ## Abrir la aplicación en la PC
 
@@ -35,6 +33,10 @@ Haga doble clic en:
 ```text
 INICIAR_EN_WINDOWS.bat
 ```
+
+El iniciador localiza Flutter automáticamente, guarda las cachés grandes en la
+misma unidad pero fuera del repositorio y comprueba que Visual Studio tenga las
+herramientas C++ necesarias.
 
 Luego, dentro de la aplicación, abra **Importar** y seleccione uno o ambos archivos XLSX.
 
@@ -79,16 +81,6 @@ Después vuelva a ejecutar:
 INICIAR_EN_WINDOWS.bat
 ```
 
-
-## Actualizar el importador XLSX
-
-Si recibió el parche 0.1.3, extraiga su contenido sobre el proyecto y ejecute:
-
-```bat
-ACTUALIZAR_IMPORTADOR.bat
-```
-
-El script limpia la compilación, actualiza las dependencias e inicia la aplicación. No elimina la base SQLite local.
 
 ## Crédito visible
 

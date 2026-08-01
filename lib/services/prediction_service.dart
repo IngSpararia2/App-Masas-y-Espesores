@@ -211,9 +211,12 @@ class PredictionService {
         (targetThickness >= thicknessRange.min &&
             targetThickness <= thicknessRange.max);
 
-    if (sampleCount >= 30 && absorptionInside && thicknessInside) return 'Alta';
-    if (sampleCount >= 10 && absorptionInside && thicknessInside)
+    if (sampleCount >= 30 && absorptionInside && thicknessInside) {
+      return 'Alta';
+    }
+    if (sampleCount >= 10 && absorptionInside && thicknessInside) {
       return 'Media';
+    }
     return 'Baja';
   }
 }

@@ -12,15 +12,17 @@ class DatabaseService {
 
   String get databasePath {
     final value = _databasePath;
-    if (value == null)
+    if (value == null) {
       throw StateError('La base de datos no está inicializada.');
+    }
     return value;
   }
 
   Database get _db {
     final value = _database;
-    if (value == null)
+    if (value == null) {
       throw StateError('La base de datos no está inicializada.');
+    }
     return value;
   }
 
@@ -284,7 +286,7 @@ class DatabaseService {
   }
 
   void dispose() {
-    _database?.dispose();
+    _database?.close();
     _database = null;
   }
 }

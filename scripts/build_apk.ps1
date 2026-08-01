@@ -1,10 +1,12 @@
-param(
+﻿param(
     [switch]$SplitPerAbi
 )
 
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $ProjectRoot
+. "$PSScriptRoot\flutter_environment.ps1"
+$Flutter = Initialize-MasaLabFlutterEnvironment -ProjectRoot $ProjectRoot
 
 if (-not (Test-Path "android\app")) {
     & "$PSScriptRoot\bootstrap_flutter.ps1"
@@ -13,15 +15,15 @@ if (-not (Test-Path "android\app")) {
     }
 }
 
-flutter pub get
+& $Flutter pub get
 if ($LASTEXITCODE -ne 0) {
     throw "flutter pub get finalizó con errores."
 }
 
 if ($SplitPerAbi) {
-    flutter build apk --release --split-per-abi
+    & $Flutter build apk --release --split-per-abi
 } else {
-    flutter build apk --release
+    & $Flutter build apk --release
 }
 
 if ($LASTEXITCODE -ne 0) {

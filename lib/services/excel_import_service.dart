@@ -239,9 +239,9 @@ class ExcelImportService {
         db.execute('ROLLBACK;');
         rethrow;
       } finally {
-        selectExisting.dispose();
-        insertMeasurement.dispose();
-        updateMeasurement.dispose();
+        selectExisting.close();
+        insertMeasurement.close();
+        updateMeasurement.close();
       }
 
       return <String, Object?>{
@@ -257,7 +257,7 @@ class ExcelImportService {
         'notes': notes,
       };
     } finally {
-      db.dispose();
+      db.close();
     }
   }
 
@@ -530,9 +530,9 @@ class ExcelImportService {
     double? absorption;
     double? density;
     if (hasMasses) {
-      final dryValue = dry!;
-      final saturatedValue = saturated!;
-      final immersedValue = immersed!;
+      final dryValue = dry;
+      final saturatedValue = saturated;
+      final immersedValue = immersed;
       if (dryValue > 0 && saturatedValue > immersedValue) {
         absorption = ((saturatedValue - dryValue) / dryValue) * 100;
         density = (dryValue / (saturatedValue - immersedValue)) * 1000;
@@ -575,10 +575,7 @@ class ExcelImportService {
     }
 
     final physicalOrder =
-        hasMasses &&
-        saturated! >= dry! &&
-        immersed! >= 0 &&
-        immersed! < saturated!;
+        hasMasses && saturated >= dry && immersed >= 0 && immersed < saturated;
     final validAbsorption =
         absorption != null &&
         absorption.isFinite &&

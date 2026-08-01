@@ -1,4 +1,4 @@
-param(
+﻿param(
     [ValidateSet("All", "Android", "Windows")]
     [string]$Platform = "All"
 )

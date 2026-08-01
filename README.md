@@ -8,7 +8,7 @@ Flutter permite mantener una sola base de código para Android y Windows. En est
 
 - Flutter/Material 3 para la interfaz.
 - SQLite mediante `sqlite3` para persistencia local en Android y Windows.
-- `file_picker` para seleccionar uno o varios archivos XLSX.
+- `file_selector` para seleccionar uno o varios archivos XLSX.
 - Un lector XLSX tabular propio, basado en `archive` y `xml`, para leer la hoja `Resumen` y tolerar celdas con errores de fórmula.
 - SHA-256 para deduplicación y control de cambios.
 
@@ -18,7 +18,7 @@ Referencias oficiales:
 - https://docs.flutter.dev/platform-integration/android/setup
 - https://docs.flutter.dev/deployment/android
 - https://pub.dev/packages/sqlite3
-- https://pub.dev/packages/file_picker
+- https://pub.dev/packages/file_selector
 - https://pub.dev/packages/archive
 - https://pub.dev/packages/xml
 
@@ -42,37 +42,21 @@ Referencias oficiales:
 
 ### Cálculo
 
-**Compresión**
+La pantalla **Calcular** ofrece dos modos:
 
-Entrada:
+- **Precisión:** conserva el cálculo histórico por escenarios bajo (P15), típico
+  (P50) y alto (P85).
+- **Ensayos:** genera el apoyo de laboratorio para hasta cinco muestras y tres
+  contra-muestras opcionales, con absorciones y espesores manuales o aleatorios
+  dentro de los límites del modelo seleccionado.
 
-- Modelo.
-- Absorción objetivo.
+En **Compresión** se solicita el modelo y la absorción. Los resultados se muestran
+como masa saturada, masa inmersa, masa seca, masa natural, densidad y absorción.
 
-Salida:
-
-- Masa seca.
-- Masa saturada.
-- Masa inmersa.
-- Masa natural.
-- Tres escenarios: bajo (P15), típico (P50) y alto (P85).
-
-**Flexotracción**
-
-Entrada:
-
-- Modelo.
-- Absorción objetivo.
-- Espesor objetivo en milímetros.
-
-Salida:
-
-- Masa seca.
-- Masa saturada.
-- Masa inmersa.
-- Tres escenarios: bajo, típico y alto.
-
-La masa seca se escala con `masa seca histórica / espesor histórico`, por lo que el resultado cambia de forma proporcional y coherente con el espesor solicitado.
+En **Flexotracción** se solicitan el modelo, la absorción y el espesor en
+milímetros. Los resultados se muestran como masa saturada, masa seca, masa
+inmersa, densidad y absorción. La masa seca se escala con
+`masa seca histórica / espesor histórico`.
 
 ### Administración
 
@@ -90,30 +74,38 @@ La masa seca se escala con `masa seca histórica / espesor histórico`, por lo q
 
 ## Preparar el proyecto en Windows
 
-El ZIP contiene todo el código de la aplicación. Las carpetas nativas `android` y `windows` se generan con la plantilla de la versión de Flutter que tenga instalada; esto evita entregar archivos Gradle o CMake que queden obsoletos.
+El repositorio ya incluye las plataformas `android` y `windows`. Puede estar en
+cualquier unidad, incluida D:; los scripts cambian automáticamente a la carpeta
+correcta y guardan las cachés grandes de Pub y Gradle en la misma unidad, fuera
+del repositorio.
 
 ### 1. Instalar herramientas
 
 Instale:
 
-- Flutter **3.38 o superior** y agréguelo a `PATH`.
+- Flutter **3.38 o superior**. Puede estar en `PATH`, en `FLUTTER_ROOT` o bajo
+  `%USERPROFILE%\flutter\<version>`.
 - Android Studio con Android SDK para compilar APK.
-- Visual Studio 2022 con **Desktop development with C++** para ejecutar la versión Windows.
+- Visual Studio actualizado con **Desktop development with C++** para ejecutar
+  la versión Windows.
 
-Verifique:
-
-```powershell
-flutter doctor
-```
-
-### 2. Generar las plataformas y descargar dependencias
-
-Abra PowerShell en la carpeta del proyecto:
+Si Flutter está en `PATH`, verifique manualmente con:
 
 ```powershell
-Set-ExecutionPolicy -Scope Process Bypass
-.\scripts\bootstrap_flutter.ps1
+flutter doctor -v
 ```
+
+### 2. Iniciar la aplicación
+
+Haga doble clic en `INICIAR_EN_WINDOWS.bat` o ejecute:
+
+```powershell
+.\scripts\run_windows.ps1
+```
+
+`PREPARAR_PROYECTO.bat` es una herramienta de recuperación: úsela solamente si
+faltan las carpetas nativas. Para errores `RC2135` o `RC2164` de `Runner.rc`, use
+`REPARAR_WINDOWS.bat`.
 
 ## Previsualizar en la PC
 
@@ -161,10 +153,11 @@ flutter run -d <ID_DEL_CELULAR>
 1. Abra **Importar**.
 2. Seleccione `Resumen_Compresion.xlsx`, `Resumen_Flexotraccion.xlsx` o ambos.
 3. Espere el resumen de nuevos, actualizados, sin cambios y rechazados.
-4. Abra **Calcular**.
+4. Abra **Calcular** y elija **Precisión** o **Ensayos**.
 5. Elija compresión o flexotracción y seleccione un modelo.
-6. Indique absorción y, para flexotracción, espesor.
-7. Revise los escenarios y las advertencias de extrapolación.
+6. Introduzca los valores manualmente o, en Ensayos, use la configuración de
+   aleatoriedad y los botones opcionales.
+7. Calcule y revise los resultados y las advertencias de extrapolación.
 
 ## Pruebas y análisis estático
 
@@ -191,7 +184,6 @@ docs/
   ALGORITHM.md           fundamento matemático
   DATABASE.md            esquema y deduplicación
   ROADMAP.md             ampliaciones sugeridas
-  BUILD_STATUS.md        comprobaciones realizadas y compilación pendiente
 scripts/                 preparación, ejecución, APK y pruebas
 test/                    pruebas de normalización, estadística y ecuaciones
 ```
@@ -200,12 +192,10 @@ test/                    pruebas de normalización, estadística y ecuaciones
 
 Este proyecto fue preparado contra Flutter 3.38+ y sus dependencias actuales. Los resultados son estimaciones derivadas del histórico y sirven para proponer valores realistas de trabajo. No sustituyen el pesaje, la validación de laboratorio, las tolerancias normativas ni el criterio del responsable de calidad.
 
-## Correcciones de versión
+## Historial de versiones
 
-- **0.1.1+2:** compatibilidad con la API estática de `file_picker 11.x`. Consulte `docs/CORRECCION_0.1.1.md`.
-- **0.1.2+3:** regeneración segura de la plataforma Windows sin corromper `Runner.rc`. Consulte `docs/CORRECCION_0.1.2.md`.
-- **0.1.3+4:** lector XLSX tolerante a celdas de error y eliminación de la dependencia `excel`. Consulte `docs/CORRECCION_0.1.3.md`.
-- **0.1.4+5:** crédito de autor visible y persistente sobre la barra de navegación. Consulte `docs/CORRECCION_0.1.4.md`.
+- Consulte [`CHANGELOG.md`](CHANGELOG.md) para el historial consolidado. Los
+  antiguos archivos de parche y sus lanzadores duplicados fueron retirados.
 
 
 ### Reparación de la plataforma Windows
