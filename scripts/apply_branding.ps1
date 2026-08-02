@@ -9,7 +9,7 @@ $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $BrandingRoot = Join-Path $ProjectRoot "assets\branding"
 $GeneratedRoot = Join-Path $BrandingRoot "generated"
 $SourceIcon = Join-Path $BrandingRoot "app_icon_source.png"
-$ExpectedSourceSha256 = "C908DC2887580525E9543216E6004F95AFDD62D041365EBAF43F52B5FB1C4115"
+$ExpectedSourceSha256 = "99DAEDF5385C07F2D7A0867613D2FF8CC14CEDA886DC1844E51FA206DD5894A6"
 
 if (-not (Test-Path -LiteralPath $SourceIcon -PathType Leaf)) {
     throw "Branding source icon was not found: $SourceIcon"

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'services/app_controller.dart';
 import 'ui/app_shell.dart';
+import 'ui/screens/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +44,7 @@ class MasaLabApp extends StatelessWidget {
           fillColor: Colors.white,
         ),
       ),
-      home: AppShell(controller: controller),
+      home: SplashScreen(nextScreen: AppShell(controller: controller)),
     );
   }
 }
